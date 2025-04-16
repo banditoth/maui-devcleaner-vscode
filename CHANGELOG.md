@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.0.1
+
+Changed broken commands due to rename of the project
+
 ## 1.0.0
 
 Initial release with the following features:
