@@ -1,8 +1,14 @@
+<img src="icon.png" width="120" height="120"/>
+
 # .NET MAUI - Development machine cleaner tool
 
-A powerful Visual Studio Code extension designed to help .NET MAUI developers keep their development machine clean and optimized. This extension provides a suite of tools to remove unnecessary files, clear caches, and manage SDK components efficiently.
+![GitHub License](https://img.shields.io/github/license/banditoth/maui-devcleaner-vscode?style=for-the-badge)
 
-![MAUI Cleaner Icon](icon.png)
+![Visual Studio Marketplace Downloads](https://img.shields.io/visual-studio-marketplace/d/banditoth.VSCode-MAUI-DevCleaner?style=for-the-badge&link=https%3A%2F%2Fmarketplace.visualstudio.com%2Fitems%3FitemName%3Dbanditoth.VSCode-MAUI-DevCleaner)
+
+![GitHub issues](https://img.shields.io/github/issues/banditoth/maui-devcleaner-vscode?style=for-the-badge)
+
+A powerful Visual Studio Code extension designed to help .NET MAUI developers keep their development machine clean and optimized. This extension provides a suite of tools to remove unnecessary files, clear caches, and manage SDK components efficiently.
 
 ## Features
 

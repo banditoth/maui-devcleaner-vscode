@@ -1,11 +1,24 @@
 {
-  "name": "banditoth.VSCode-MAUI-DevCleaner",
-  "displayName": ".NET MAUI - Development machine cleaner tool",
+  "name": "VSCode-MAUI-DevCleaner",
+  "publisher": "banditoth",
+  "displayName": ".NET MAUI - Development Machine Cleaner Tool",
   "description": "A powerful Visual Studio Code extension designed to help .NET MAUI developers keep their development machine clean and optimized",
   "version": "1.0.0",
   "engines": {
     "vscode": "^1.96.2"
   },
+  "author": {
+    "name": "banditoth",
+    "email": "hello@banditoth.net"
+  },
+  "keywords": [
+    "MAUI",
+    ".NET MAUI",
+    "Cleaner",
+    "SDK",
+    "Space",
+    "Disk cleaner"
+  ],
   "categories": [
     "Other"
   ],
@@ -81,8 +94,7 @@
   "icon": "icon.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/banditoth/maui-cleaner.git"
+    "url": "https://github.com/banditoth/maui-devcleaner-vscode"
   },
-  "publisher": "banditoth",
   "license": "MIT"
 }
