@@ -3,7 +3,7 @@
   "publisher": "banditoth",
   "displayName": ".NET MAUI - Development Machine Cleaner Tool",
   "description": "A powerful Visual Studio Code extension designed to help .NET MAUI developers keep their development machine clean and optimized",
-  "version": "1.0.3",
+  "version": "1.0.5",
   "engines": {
     "vscode": "^1.96.2"
   },
@@ -71,7 +71,12 @@
   "scripts": {
     "lint": "eslint .",
     "pretest": "npm run lint",
-    "test": "node ./test/runTest.js"
+    "test": "node ./test/runTest.js",
+    "package": "vsce package",
+    "publish": "vsce publish"
+  },
+  "dependencies": {
+    "xml2js": "^0.6.2"
   },
   "devDependencies": {
     "@types/vscode": "^1.96.2",
@@ -82,8 +87,7 @@
     "eslint": "^8.56.0",
     "glob": "^10.3.10",
     "mocha": "^10.2.0",
-    "typescript": "^5.3.3",
-    "xml2js": "^0.6.2"
+    "typescript": "^5.3.3"
   },
   "icon": "icon.png",
   "repository": {
