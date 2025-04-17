@@ -3,7 +3,7 @@
   "publisher": "banditoth",
   "displayName": ".NET MAUI - Development Machine Cleaner Tool",
   "description": "A powerful Visual Studio Code extension designed to help .NET MAUI developers keep their development machine clean and optimized",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "engines": {
     "vscode": "^1.96.2"
   },
@@ -23,13 +23,13 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:VSCode-MAUI-DevCleaner.cleanBinObj",
-    "onCommand:VSCode-MAUI-DevCleaner.cleanNugetCache",
-    "onCommand:VSCode-MAUI-DevCleaner.cleanIosDeviceSupport",
-    "onCommand:VSCode-MAUI-DevCleaner.cleanAndroidSdk",
-    "onCommand:VSCode-MAUI-DevCleaner.cleanIosSimulatorRuntime",
-    "onCommand:VSCode-MAUI-DevCleaner.cleanDotnetPacks",
-    "onCommand:VSCode-MAUI-DevCleaner.cleanAllExceptLatest"
+    "onCommand:banditoth.VSCode-MAUI-DevCleaner.cleanBinObj",
+    "onCommand:banditoth.VSCode-MAUI-DevCleaner.cleanNugetCache",
+    "onCommand:banditoth.VSCode-MAUI-DevCleaner.cleanIosDeviceSupport",
+    "onCommand:banditoth.VSCode-MAUI-DevCleaner.cleanAndroidSdk",
+    "onCommand:banditoth.VSCode-MAUI-DevCleaner.cleanIosSimulatorRuntime",
+    "onCommand:banditoth.VSCode-MAUI-DevCleaner.cleanDotnetPacks",
+    "onCommand:banditoth.VSCode-MAUI-DevCleaner.cleanAllExceptLatest"
   ],
   "main": "./extension.js",
   "contributes": {
