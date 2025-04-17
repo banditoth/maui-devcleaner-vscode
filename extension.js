@@ -93,6 +93,7 @@ function keepLatestVersion(versions) {
  */
 function activate(context) {
 	console.log('MAUI Cleaner extension is now active!');
+	console.log('Extension context:', context.extension.id);
 
 	// Helper function to get Android SDK path
 	function getAndroidSdkPath() {
@@ -114,6 +115,7 @@ function activate(context) {
 
 	// Clean bin/obj folders command
 	const cleanBinObj = vscode.commands.registerCommand('banditoth.VSCode-MAUI-DevCleaner.cleanBinObj', async () => {
+		console.log('cleanBinObj command executed');
 		const workspaceFolders = vscode.workspace.workspaceFolders;
 		if (!workspaceFolders) {
 			vscode.window.showErrorMessage('No workspace folder is open');
@@ -149,6 +151,7 @@ function activate(context) {
 
 	// Clean NuGet cache command
 	const cleanNugetCache = vscode.commands.registerCommand('banditoth.VSCode-MAUI-DevCleaner.cleanNugetCache', async () => {
+		console.log('cleanNugetCache command executed');
 		try {
 			const isWindows = process.platform === 'win32';
 			const command = isWindows 
@@ -178,6 +181,7 @@ function activate(context) {
 
 	// Clean iOS Device Support command (macOS only)
 	const cleanIosDeviceSupport = vscode.commands.registerCommand('banditoth.VSCode-MAUI-DevCleaner.cleanIosDeviceSupport', async () => {
+		console.log('cleanIosDeviceSupport command executed');
 		if (process.platform !== 'darwin') {
 			vscode.window.showInformationMessage('This command is only available on macOS');
 			return;
@@ -246,6 +250,7 @@ function activate(context) {
 
 	// Clean Android SDK Components command
 	const cleanAndroidSdk = vscode.commands.registerCommand('banditoth.VSCode-MAUI-DevCleaner.cleanAndroidSdk', async () => {
+		console.log('cleanAndroidSdk command executed');
 		try {
 			const sdkRoot = getAndroidSdkPath();
 			if (!fs.existsSync(sdkRoot)) {
@@ -341,6 +346,7 @@ function activate(context) {
 
 	// Clean iOS Simulator Runtime command (macOS only)
 	const cleanIosSimulatorRuntime = vscode.commands.registerCommand('banditoth.VSCode-MAUI-DevCleaner.cleanIosSimulatorRuntime', async () => {
+		console.log('cleanIosSimulatorRuntime command executed');
 		if (process.platform !== 'darwin') {
 			vscode.window.showInformationMessage('This command is only available on macOS');
 			return;
@@ -453,6 +459,7 @@ function activate(context) {
 
 	// Clean .NET Packs command
 	const cleanDotnetPacks = vscode.commands.registerCommand('banditoth.VSCode-MAUI-DevCleaner.cleanDotnetPacks', async () => {
+		console.log('cleanDotnetPacks command executed');
 		try {
 			const isWindows = process.platform === 'win32';
 			const packsPath = isWindows 
@@ -573,6 +580,7 @@ function activate(context) {
 
 	// Clean all except latest versions command
 	const cleanAllExceptLatest = vscode.commands.registerCommand('banditoth.VSCode-MAUI-DevCleaner.cleanAllExceptLatest', async () => {
+		console.log('cleanAllExceptLatest command executed');
 		try {
 			let totalSize = 0;
 			let removedCount = 0;
