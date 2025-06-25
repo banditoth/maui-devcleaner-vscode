@@ -9,6 +9,9 @@ const execAsync = util.promisify(exec);
 const xml2js = require('xml2js');
 const parseString = util.promisify(xml2js.parseString);
 
+// Global queue for folders to delete
+const foldersToDeleteQueue = [];
+
 // Helper function to get folder size
 function getFolderSize(folderPath) {
 	let size = 0;
@@ -36,16 +39,34 @@ function formatBytes(bytes) {
 	return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-// Helper function to recursively delete a folder
-async function deleteFolderRecursive(folderPath) {
+// Helper function to recursively queue a folder for deletion
+async function queueFolderToDelete(folderPath) {
 	if (fs.existsSync(folderPath)) {
-		const isWindows = process.platform === 'win32';
-		const command = isWindows
-			? `rmdir /s /q "${folderPath}"`
-			: `rm -rf "${folderPath}"`;
-		
-		await execAsync(command);
+		foldersToDeleteQueue.push(folderPath);
 	}
+}
+
+// Helper function to confirm and delete all queued folders
+async function deleteQueuedFolders() {
+	if (foldersToDeleteQueue.length === 0) return;
+
+	const folderList = foldersToDeleteQueue.map(p => `- ${p}`).join('\n');
+	const confirm = await vscode.window.showWarningMessage(
+		`You are about to permanently delete the following folders (using sudo):\n${folderList}\nContinue?`,
+		{ modal: true },
+		'Yes', 'No'
+	);
+	if (confirm !== 'Yes') {
+		foldersToDeleteQueue.length = 0;
+		return;
+	}
+
+	const deleteCmd = 'sudo rm -rf ' + foldersToDeleteQueue.map(p => `"${p}"`).join(' ');
+	const terminal = vscode.window.createTerminal({ name: 'MAUI DevCleaner - Delete Folders' });
+	terminal.show(true);
+	terminal.sendText(deleteCmd);
+	vscode.window.showInformationMessage('A terminal window has been opened to delete the selected folders. Please enter your password if prompted.');
+	foldersToDeleteQueue.length = 0;
 }
 
 // Helper function to keep only the latest version
@@ -131,13 +152,13 @@ function activate(context) {
 			try {
 				if (fs.existsSync(binPath)) {
 					const size = getFolderSize(binPath);
-					await deleteFolderRecursive(binPath);
+					await queueFolderToDelete(binPath);
 					deletedCount++;
 					totalSize += size;
 				}
 				if (fs.existsSync(objPath)) {
 					const size = getFolderSize(objPath);
-					await deleteFolderRecursive(objPath);
+					await queueFolderToDelete(objPath);
 					deletedCount++;
 					totalSize += size;
 				}
@@ -145,6 +166,8 @@ function activate(context) {
 				vscode.window.showErrorMessage(`Error cleaning ${folder.name}: ${error.message}`);
 			}
 		}
+
+		await deleteQueuedFolders();
 
 		vscode.window.showInformationMessage(`Cleaned ${deletedCount} bin/obj folders, freeing ${formatBytes(totalSize)}`);
 	});
@@ -234,13 +257,15 @@ function activate(context) {
 			for (const folder of selectedFolders) {
 				try {
 					const size = getFolderSize(folder.path);
-					await deleteFolderRecursive(folder.path);
+					await queueFolderToDelete(folder.path);
 					removedCount++;
 					totalSize += size;
 				} catch (error) {
 					vscode.window.showErrorMessage(`Error removing ${folder.label}: ${error.message}`);
 				}
 			}
+
+			await deleteQueuedFolders();
 
 			vscode.window.showInformationMessage(`Removed ${removedCount} iOS Device Support folders, freeing ${formatBytes(totalSize)}`);
 		} catch (error) {
@@ -330,13 +355,15 @@ function activate(context) {
 			for (const version of selectedVersions) {
 				try {
 					const size = getFolderSize(version.path);
-					await deleteFolderRecursive(version.path);
+					await queueFolderToDelete(version.path);
 					removedCount++;
 					totalSize += size;
 				} catch (error) {
 					vscode.window.showErrorMessage(`Error removing version ${version.label}: ${error.message}`);
 				}
 			}
+
+			await deleteQueuedFolders();
 
 			vscode.window.showInformationMessage(`Removed ${removedCount} ${component.name} versions, freeing ${formatBytes(totalSize)}`);
 		} catch (error) {
@@ -441,13 +468,15 @@ function activate(context) {
 			for (const item of selectedItems) {
 				try {
 					const size = getFolderSize(item.path);
-					await deleteFolderRecursive(item.path);
+					await queueFolderToDelete(item.path);
 					removedCount++;
 					totalSize += size;
 				} catch (error) {
 					vscode.window.showErrorMessage(`Error removing ${item.label}: ${error.message}`);
 				}
 			}
+
+			await deleteQueuedFolders();
 
 			vscode.window.showInformationMessage(
 				`Removed ${removedCount} iOS Simulator Runtime assets, freeing ${formatBytes(totalSize)}`
@@ -553,7 +582,7 @@ function activate(context) {
 			for (const packPath of packsToRemove) {
 				try {
 					const size = getFolderSize(packPath);
-					await deleteFolderRecursive(packPath);
+					await queueFolderToDelete(packPath);
 					removedCount++;
 					totalSize += size;
 				} catch (error) {
@@ -564,13 +593,15 @@ function activate(context) {
 			for (const versionPath of versionsToRemove) {
 				try {
 					const size = getFolderSize(versionPath);
-					await deleteFolderRecursive(versionPath);
+					await queueFolderToDelete(versionPath);
 					removedCount++;
 					totalSize += size;
 				} catch (error) {
 					vscode.window.showErrorMessage(`Error removing version ${path.basename(versionPath)}: ${error.message}`);
 				}
 			}
+
+			await deleteQueuedFolders();
 
 			vscode.window.showInformationMessage(`Removed ${removedCount} items, freeing ${formatBytes(totalSize)}`);
 		} catch (error) {
@@ -599,7 +630,7 @@ function activate(context) {
 					const versionsToRemove = keepLatestVersion(versions);
 					for (const version of versionsToRemove) {
 						const size = getFolderSize(version.path);
-						await deleteFolderRecursive(version.path);
+						await queueFolderToDelete(version.path);
 						totalSize += size;
 						removedCount++;
 					}
@@ -626,7 +657,7 @@ function activate(context) {
 						const versionsToRemove = keepLatestVersion(versions);
 						for (const version of versionsToRemove) {
 							const size = getFolderSize(version.path);
-							await deleteFolderRecursive(version.path);
+							await queueFolderToDelete(version.path);
 							totalSize += size;
 							removedCount++;
 						}
@@ -655,7 +686,7 @@ function activate(context) {
 					const versionsToRemove = keepLatestVersion(versions);
 					for (const version of versionsToRemove) {
 						const size = getFolderSize(version.path);
-						await deleteFolderRecursive(version.path);
+						await queueFolderToDelete(version.path);
 						totalSize += size;
 						removedCount++;
 					}
@@ -691,13 +722,15 @@ function activate(context) {
 						const versionsToRemove = assetFolders.filter(asset => !asset.isUsed);
 						for (const version of versionsToRemove) {
 							const size = getFolderSize(version.path);
-							await deleteFolderRecursive(version.path);
+							await queueFolderToDelete(version.path);
 							totalSize += size;
 							removedCount++;
 						}
 					}
 				}
 			}
+
+			await deleteQueuedFolders();
 
 			vscode.window.showInformationMessage(
 				`Removed ${removedCount} items, freeing ${formatBytes(totalSize)}. Kept only the latest versions.`
