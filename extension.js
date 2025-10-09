@@ -46,6 +46,47 @@ async function queueFolderToDelete(folderPath) {
 	}
 }
 
+// Helper function to recursively delete a path without relying on modern fs helpers
+function deletePathRecursively(targetPath) {
+        if (!fs.existsSync(targetPath)) {
+                return;
+        }
+
+        const stat = fs.lstatSync(targetPath);
+        if (stat.isDirectory() && !stat.isSymbolicLink()) {
+                const entries = fs.readdirSync(targetPath);
+                for (const entry of entries) {
+                        deletePathRecursively(path.join(targetPath, entry));
+                }
+                fs.rmdirSync(targetPath);
+        } else {
+                fs.unlinkSync(targetPath);
+        }
+}
+
+async function removeQueuedPath(folderPath) {
+        if (fs.promises && typeof fs.promises.rm === 'function') {
+                await fs.promises.rm(folderPath, { recursive: true, force: true });
+                return;
+        }
+
+        if (typeof fs.rm === 'function') {
+                await new Promise((resolve, reject) => {
+                        fs.rm(folderPath, { recursive: true, force: true }, error => {
+                                if (!error || error.code === 'ENOENT') {
+                                        resolve();
+                                } else {
+                                        reject(error);
+                                }
+                        });
+                });
+                return;
+        }
+
+        // Fallback for very old Node versions
+        deletePathRecursively(folderPath);
+}
+
 // Helper function to confirm and delete all queued folders
 async function deleteQueuedFolders() {
         if (foldersToDeleteQueue.length === 0) return;
@@ -64,7 +105,7 @@ async function deleteQueuedFolders() {
         const deletionErrors = [];
         for (const folderPath of [...foldersToDeleteQueue]) {
                 try {
-                        await fs.promises.rm(folderPath, { recursive: true, force: true });
+                        await removeQueuedPath(folderPath);
                 } catch (error) {
                         deletionErrors.push({ folderPath, error });
                 }
