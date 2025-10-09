@@ -46,27 +46,79 @@ async function queueFolderToDelete(folderPath) {
 	}
 }
 
+// Helper function to recursively delete a path without relying on modern fs helpers
+function deletePathRecursively(targetPath) {
+        if (!fs.existsSync(targetPath)) {
+                return;
+        }
+
+        const stat = fs.lstatSync(targetPath);
+        if (stat.isDirectory() && !stat.isSymbolicLink()) {
+                const entries = fs.readdirSync(targetPath);
+                for (const entry of entries) {
+                        deletePathRecursively(path.join(targetPath, entry));
+                }
+                fs.rmdirSync(targetPath);
+        } else {
+                fs.unlinkSync(targetPath);
+        }
+}
+
+async function removeQueuedPath(folderPath) {
+        if (fs.promises && typeof fs.promises.rm === 'function') {
+                await fs.promises.rm(folderPath, { recursive: true, force: true });
+                return;
+        }
+
+        if (typeof fs.rm === 'function') {
+                await new Promise((resolve, reject) => {
+                        fs.rm(folderPath, { recursive: true, force: true }, error => {
+                                if (!error || error.code === 'ENOENT') {
+                                        resolve();
+                                } else {
+                                        reject(error);
+                                }
+                        });
+                });
+                return;
+        }
+
+        // Fallback for very old Node versions
+        deletePathRecursively(folderPath);
+}
+
 // Helper function to confirm and delete all queued folders
 async function deleteQueuedFolders() {
-	if (foldersToDeleteQueue.length === 0) return;
+        if (foldersToDeleteQueue.length === 0) return;
 
-	const folderList = foldersToDeleteQueue.map(p => `- ${p}`).join('\n');
-	const confirm = await vscode.window.showWarningMessage(
-		`You are about to permanently delete the following folders (using sudo):\n${folderList}\nContinue?`,
-		{ modal: true },
-		'Yes', 'No'
-	);
-	if (confirm !== 'Yes') {
-		foldersToDeleteQueue.length = 0;
-		return;
-	}
+        const folderList = foldersToDeleteQueue.map(p => `- ${p}`).join('\n');
+        const confirm = await vscode.window.showWarningMessage(
+                `You are about to permanently delete the following folders:\n${folderList}\nContinue?`,
+                { modal: true },
+                'Yes', 'No'
+        );
+        if (confirm !== 'Yes') {
+                foldersToDeleteQueue.length = 0;
+                return;
+        }
 
-	const deleteCmd = 'sudo rm -rf ' + foldersToDeleteQueue.map(p => `"${p}"`).join(' ');
-	const terminal = vscode.window.createTerminal({ name: 'MAUI DevCleaner - Delete Folders' });
-	terminal.show(true);
-	terminal.sendText(deleteCmd);
-	vscode.window.showInformationMessage('A terminal window has been opened to delete the selected folders. Please enter your password if prompted.');
-	foldersToDeleteQueue.length = 0;
+        const deletionErrors = [];
+        for (const folderPath of [...foldersToDeleteQueue]) {
+                try {
+                        await removeQueuedPath(folderPath);
+                } catch (error) {
+                        deletionErrors.push({ folderPath, error });
+                }
+        }
+
+        foldersToDeleteQueue.length = 0;
+
+        if (deletionErrors.length > 0) {
+                const errorDetails = deletionErrors
+                        .map(({ folderPath, error }) => `${folderPath}: ${error.message}`)
+                        .join('\n');
+                vscode.window.showErrorMessage(`Some folders could not be deleted:\n${errorDetails}`);
+        }
 }
 
 // Helper function to keep only the latest version
